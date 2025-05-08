@@ -148,30 +148,7 @@ function App() {
   const handleProblemAnswer = (problem: MathProblem, userAnswer: number) => {
     const updatedProblem = { ...problem, userAnswer };
     const solvedProblems = state.solvedProblems ? [...state.solvedProblems, updatedProblem] : [updatedProblem];
-    // 1回の演算ごとに結果を表示
     const timeSpent = state.startTime ? Math.round((Date.now() - state.startTime) / 1000) : 0;
-
-    if (state.settings && state.user) {
-      const correctCount = solvedProblems.filter(p => p.answer === p.userAnswer).length;
-      const score = Math.round((correctCount / solvedProblems.length) * 100);
-
-      const result: DrillResult = {
-        id: Date.now().toString(),
-        date: new Date().toISOString(),
-        username: state.user.username,
-        operations: state.settings.operations.map(op => OPERATION_NAMES[op as keyof typeof OPERATION_NAMES] || op),
-        problemCount: solvedProblems.length,
-        correctCount,
-        timeLimit: state.settings.timeLimit,
-        timeSpent,
-        score,
-        problems: solvedProblems,
-      };
-
-      const newHistory = [result, ...history];
-      setHistory(newHistory);
-      localStorage.setItem('drillHistory', JSON.stringify(newHistory));
-    }
 
     if (state.currentProblemIndex !== undefined && state.problems && state.currentProblemIndex < state.problems.length - 1) {
       // 次の問題へ進む
@@ -185,7 +162,28 @@ function App() {
         timeSpent,
       }));
     } else {
-      // 全問題終了、結果画面へ
+      // 全問題終了、結果画面へ＆履歴保存
+      if (state.settings && state.user) {
+        const correctCount = solvedProblems.filter(p => p.answer === p.userAnswer).length;
+        const score = Math.round((correctCount / solvedProblems.length) * 100);
+
+        const result: DrillResult = {
+          id: Date.now().toString(),
+          date: new Date().toISOString(),
+          username: state.user.username,
+          operations: state.settings.operations.map(op => OPERATION_NAMES[op as keyof typeof OPERATION_NAMES] || op),
+          problemCount: solvedProblems.length,
+          correctCount,
+          timeLimit: state.settings.timeLimit,
+          timeSpent,
+          score,
+          problems: solvedProblems,
+        };
+
+        const newHistory = [result, ...history];
+        setHistory(newHistory);
+        localStorage.setItem('drillHistory', JSON.stringify(newHistory));
+      }
       setState(prevState => ({
         ...prevState,
         screen: 'result',
