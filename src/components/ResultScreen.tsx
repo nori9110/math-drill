@@ -1,128 +1,74 @@
 import React from 'react';
-import { Trophy, RefreshCw, Clock, ArrowLeft } from 'lucide-react';
 import type { MathProblem } from '../types';
 
 type ResultScreenProps = {
   problems: MathProblem[];
   timeSpent: number;
   onRetry: () => void;
-  isHistoryView?: boolean;
 };
 
-const OPERATION_NAMES = {
-  addition: 'たし算',
-  subtraction: 'ひき算',
-  multiplication: 'かけ算',
-  division: 'わり算',
-};
-
-export function ResultScreen({ problems, timeSpent, onRetry, isHistoryView }: ResultScreenProps) {
-  const correctCount = problems.filter(
-    (p) => p.answer === p.userAnswer
-  ).length;
-
-  const percentage = Math.round((correctCount / problems.length) * 100);
-  const minutes = Math.floor(timeSpent / 60);
-  const seconds = timeSpent % 60;
-
-  // 演算ごとの正解数を集計
-  const statsByOperation = problems.reduce((acc, problem) => {
-    const op = problem.operation;
-    if (!acc[op]) {
-      acc[op] = { total: 0, correct: 0 };
-    }
-    acc[op].total++;
-    if (problem.answer === problem.userAnswer) {
-      acc[op].correct++;
-    }
-    return acc;
-  }, {} as Record<string, { total: number; correct: number }>);
+export function ResultScreen({ problems, timeSpent, onRetry }: ResultScreenProps) {
+  const correctCount = problems.filter(p => p.answer === p.userAnswer).length;
+  const score = Math.round((correctCount / problems.length) * 100);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-200 to-pink-200 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
-        <div className="flex flex-col items-center mb-8">
-          <Trophy className="w-16 h-16 text-yellow-500 mb-4" />
-          <h1 className="text-3xl font-bold text-purple-600 mb-2">
-            {isHistoryView ? 'けいさんのきろく' : 'おつかれさま！'}
-          </h1>
-          <div className="text-5xl font-bold text-purple-500 mb-4">
-            {percentage}点
+    <div className="min-h-screen bg-gray-100 py-8">
+      <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6">
+        <h1 className="text-3xl font-bold text-center mb-8">結果</h1>
+
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          <div className="bg-blue-50 p-4 rounded-lg text-center">
+            <div className="text-2xl font-bold text-blue-600">{score}点</div>
+            <div className="text-sm text-blue-800">正答率</div>
           </div>
-          <p className="text-gray-600">
-            {problems.length}問中{correctCount}問せいかい
-          </p>
-          <div className="flex items-center gap-2 text-gray-600 mt-2">
-            <Clock className="w-5 h-5" />
-            <span>
-              かかった時間: {minutes}分{seconds}秒
-            </span>
+          <div className="bg-green-50 p-4 rounded-lg text-center">
+            <div className="text-2xl font-bold text-green-600">{correctCount}/{problems.length}</div>
+            <div className="text-sm text-green-800">正解数</div>
+          </div>
+          <div className="bg-purple-50 p-4 rounded-lg text-center">
+            <div className="text-2xl font-bold text-purple-600">{timeSpent}秒</div>
+            <div className="text-sm text-purple-800">所要時間</div>
           </div>
         </div>
 
-        <div className="space-y-6">
-          {/* 演算ごとの成績 */}
-          <div className="bg-gray-50 rounded-xl p-4 space-y-2">
-            <h2 className="font-medium text-gray-700">演算ごとの成績</h2>
-            {Object.entries(statsByOperation).map(([op, stats]) => (
-              <div key={op} className="flex justify-between items-center">
-                <span>{OPERATION_NAMES[op]}</span>
-                <span className="text-gray-600">
-                  {stats.correct}/{stats.total}問 せいかい
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {/* 問題ごとの結果 */}
+        <div className="space-y-4 mb-8">
           {problems.map((problem, index) => (
             <div
               key={problem.id}
-              className={`p-4 rounded-xl ${
+              className={`p-4 rounded-lg ${
                 problem.answer === problem.userAnswer
-                  ? 'bg-green-100'
-                  : 'bg-red-100'
+                  ? 'bg-green-50 border border-green-200'
+                  : 'bg-red-50 border border-red-200'
               }`}
             >
-              <div className="flex justify-between items-center">
-                <span className="text-lg">
-                  {index + 1}.&nbsp;&nbsp;{problem.question}
-                </span>
-                <div className="flex items-center gap-2">
-                  <span
-                    className={
-                      problem.answer === problem.userAnswer
-                        ? 'text-green-600'
-                        : 'text-red-600'
-                    }
-                  >
-                    {problem.userAnswer}
-                  </span>
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="font-medium mb-2">
+                    問題 {index + 1}: {problem.question}
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    あなたの答え: {problem.userAnswer}
+                  </div>
                   {problem.answer !== problem.userAnswer && (
-                    <span className="text-gray-500">
-                      (こたえ: {problem.answer})
-                    </span>
+                    <div className="text-sm text-red-600">
+                      正解: {problem.answer}
+                    </div>
                   )}
+                </div>
+                <div className="text-2xl">
+                  {problem.answer === problem.userAnswer ? '⭕️' : '❌'}
                 </div>
               </div>
             </div>
           ))}
+        </div>
 
+        <div className="flex justify-center">
           <button
             onClick={onRetry}
-            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-lg font-medium py-3 rounded-xl hover:opacity-90 transition flex items-center justify-center gap-2"
+            className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            {isHistoryView ? (
-              <>
-                <ArrowLeft className="w-5 h-5" />
-                もどる
-              </>
-            ) : (
-              <>
-                <RefreshCw className="w-5 h-5" />
-                もういちど
-              </>
-            )}
+            もう一度挑戦する
           </button>
         </div>
       </div>
